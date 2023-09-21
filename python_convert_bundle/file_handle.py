@@ -48,7 +48,7 @@ def build_asset_bundle():
     start = time.time()
     logger.info(step)
 
-    args = "/home/devops/Unity/Hub/Editor/2022.1.10f1/Editor/Unity -executeMethod CreateAssetBundles.BuildDataToBundles -batchmode -quit"
+    args = "/home/devops/Unity/Hub/Editor/2022.1.10f1/Editor/Unity -executeMethod CreateAssetBundles -batchmode -quit"
     subprocess.call(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
     end = time.time()
@@ -76,21 +76,6 @@ def upload_to_s3(file, bundle_type):
         case "word":
             ios_s3_bundle = os.getenv('WORD_IOS_S3_PATH') + bundle_file + ".bundle"
             and_s3_bundle = os.getenv('WORD_AND_S3_PATH') + bundle_file + ".bundle"
-        case "courseinstall":
-            ios_s3_bundle = os.getenv('COURSEINSTALL_IOS_S3_PATH') + bundle_file + ".bundle"
-            and_s3_bundle = os.getenv('COURSEINSTALL_AND_S3_PATH') + bundle_file + ".bundle"
-        case "item":
-            ios_s3_bundle = os.getenv('ITEM_IOS_S3_PATH') + bundle_file + ".bundle"
-            and_s3_bundle = os.getenv('ITEM_AND_S3_PATH') + bundle_file + ".bundle"
-        case "theme-sticker":
-            ios_s3_bundle = os.getenv('THEME_IOS_S3_PATH') + bundle_file + ".bundle"
-            and_s3_bundle = os.getenv('THEME_AND_S3_PATH') + bundle_file + ".bundle"
-        case "lesson":
-            ios_s3_bundle = os.getenv('LESSON_IOS_S3_PATH') + bundle_file + ".bundle"
-            and_s3_bundle = os.getenv('LESSON_AND_S3_PATH') + bundle_file + ".bundle"
-        case "category":
-            ios_s3_bundle = os.getenv('CATEGORY_IOS_S3_PATH') + bundle_file + ".bundle"
-            and_s3_bundle = os.getenv('CATEGORY_AND_S3_PATH') + bundle_file + ".bundle"
 
     try:
 
@@ -129,18 +114,6 @@ def update_api(file, bundle_type):
             request = requests.put(story_api, data=form_1)
             if(request.status_code != 200):
                 raise CustomException("Update APi " + request.text + "\n"+story_api)
-        case "word":
-            request = requests.put(word_api, data=form_1)
-            if(request.status_code != 200):
-                raise CustomException("Update APi " + request.text + "\n"+word_api)
-        case "item":
-            request = requests.post(award_api, data=form_2)
-            if(request.status_code != 200):
-                raise CustomException("Update APi " + request.text + "\n"+award_api)
-        case "theme":
-            request = requests.post(award_api, data=form_3)
-            if(request.status_code != 200):
-                raise CustomException("Update APi " + request.text + "\n"+award_api)
 
     
     end = time.time()
@@ -150,16 +123,12 @@ def update_api(file, bundle_type):
 
 def count_file_in_queue():
 
-    file_count = [0,0,0,0,0,0,0]
+    file_count = [0,0]
 
     src_story_folder = os.getenv('STORY_ZIP_PATH')
     src_word_folder = os.getenv('WORD_ZIP_PATH')
-    src_lesson_folder = os.getenv('LESSON_ZIP_PATH')
-    src_courseinstall_folder = os.getenv('COURSEINSTALL_ZIP_PATH')
-    src_item_folder = os.getenv('ITEM_ZIP_PATH')
-    src_theme_folder = os.getenv('THEME_ZIP_PATH')
-    src_category_folder = os.getenv('CATEGORY_ZIP_PATH')
-    folders = [src_story_folder, src_word_folder, src_lesson_folder, src_courseinstall_folder, src_item_folder, src_theme_folder, src_category_folder]
+
+    folders = [src_story_folder, src_word_folder]
 
     i = 0
     for folder in folders:
@@ -184,14 +153,13 @@ def main_process(file_path, bundle_type):
         file_name = file_path.split('/')[-1][:-4]
         file_count = count_file_in_queue()
 
-        noti_to_tele("Story: " +str(file_count[0]) +", Word: " + str(file_count[1])+", Lesson: "+ str(file_count[2])+", CourseInstall: "+str(file_count[3]) \
-                     +", Item: "+ str(file_count[4]) + ", Theme-Sticker: " + str(file_count[5]) + ", Category: " + str(file_count[6]) + "\nStart convert: "+bundle_type+" - "+file_name)
+        noti_to_tele("Story: " +str(file_count[0]) +", Word: " + str(file_count[1]) + "\nStart convert: "+bundle_type+" - "+file_name)
         unzip_file_and_delete(file_path)
         build_asset_bundle()
 
         upload = upload_to_s3(file_path,bundle_type)
 
-        if bundle_type == "story" or bundle_type == "word" or bundle_type == "item" or bundle_type == "theme":
+        if bundle_type == "story":
             update_api(file_name, bundle_type)
 
         end_time = time.time()
@@ -206,5 +174,3 @@ def main_process(file_path, bundle_type):
     except Exception as e:
         noti_to_tele("Failed: " + str(e))
         return fail_message
-
-#upload_to_s3("664_3.zip", "category")

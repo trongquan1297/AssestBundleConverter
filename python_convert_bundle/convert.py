@@ -71,12 +71,8 @@ def get_file_in_folders():
     bundle_type = ""
     src_story_folder = os.getenv('STORY_ZIP_PATH')
     src_word_folder = os.getenv('WORD_ZIP_PATH')
-    src_lesson_folder = os.getenv('LESSON_ZIP_PATH')
-    src_courseinstall_folder = os.getenv('COURSEINSTALL_ZIP_PATH')
-    src_item_folder = os.getenv('ITEM_ZIP_PATH')
-    src_theme_folder = os.getenv('THEME_ZIP_PATH')
-    src_category_folder = os.getenv('CATEGORY_ZIP_PATH')
-    folders = [src_item_folder, src_story_folder, src_word_folder, src_lesson_folder, src_courseinstall_folder, src_theme_folder, src_category_folder]
+
+    folders = [ src_story_folder, src_word_folder]
     
     logger.info(step)
     for folder in folders:
@@ -93,16 +89,6 @@ def get_file_in_folders():
                             bundle_type = "story"
                         elif folder == src_word_folder:
                             bundle_type = "word"
-                        elif folder == src_lesson_folder:
-                            bundle_type = "lesson"
-                        elif folder == src_courseinstall_folder:
-                            bundle_type = "courseinstall"
-                        elif folder == src_item_folder:
-                            bundle_type = "item"
-                        elif folder == src_theme_folder:
-                            bundle_type == "theme"
-                        elif folder == src_category_folder:
-                            bundle_type = "category"
                         cache_process_status(file_path, "Processing")
                         return file_path, bundle_type
                 
